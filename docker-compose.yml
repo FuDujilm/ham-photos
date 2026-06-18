@@ -1,0 +1,67 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ham-photos-db
+    environment:
+      POSTGRES_DB: ham_photos
+      POSTGRES_USER: ham_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "ham_user", "-d", "ham_photos"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ham-network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ham-photos-backend
+    environment:
+      DATABASE_URL: postgresql://ham_user:${DB_PASSWORD}@postgres:5432/ham_photos
+      CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID}
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN}
+      CLOUDFLARE_ACCOUNT_HASH: ${CLOUDFLARE_ACCOUNT_HASH}
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_USERNAME: ${ADMIN_USERNAME}
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH}
+      RUST_LOG: ${RUST_LOG:-info}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    networks:
+      - ham-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: /api
+        VITE_CF_ACCOUNT_HASH: ${CLOUDFLARE_ACCOUNT_HASH}
+    container_name: ham-photos-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - ham-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  ham-network:
+    driver: bridge

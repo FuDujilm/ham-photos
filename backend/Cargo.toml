@@ -1,0 +1,49 @@
+[package]
+name = "ham-photos-backend"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Web 框架
+axum = { version = "0.7", features = ["multipart", "macros"] }
+tokio = { version = "1", features = ["full"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "fs", "trace", "limit"] }
+
+# 数据库
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "uuid", "chrono", "json", "rust_decimal"] }
+
+# 序列化
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# HTTP 客户端
+reqwest = { version = "0.11", features = ["json", "multipart"] }
+
+# 图片处理
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
+
+# 认证
+jsonwebtoken = "9"
+bcrypt = "0.15"
+
+# 工具类
+uuid = { version = "1.0", features = ["serde", "v4"] }
+chrono = { version = "0.4", features = ["serde"] }
+rust_decimal = { version = "1", features = ["serde"] }
+dotenv = "0.15"
+anyhow = "1.0"
+thiserror = "1.0"
+hmac = "0.12"
+sha2 = "0.10"
+hex = "0.4"
+url = "2.5"
+
+# 日志
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1

@@ -1,0 +1,123 @@
+mod config;
+mod error;
+mod handlers;
+mod middleware;
+mod models;
+mod services;
+
+use axum::{
+    extract::DefaultBodyLimit,
+    middleware as axum_middleware,
+    routing::{delete, get, post, put},
+    Router,
+};
+use sqlx::postgres::PgPoolOptions;
+use tower_http::cors::{Any, CorsLayer};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+
+use config::Config;
+use error::AppError;
+
+#[derive(Clone)]
+pub struct AppState {
+    pub pool: sqlx::PgPool,
+    pub config: Config,
+}
+
+async fn health_check() -> &'static str {
+    "OK"
+}
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    // 初始化日志
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "ham_photos_backend=debug,tower_http=debug".into()),
+        )
+        .with(tracing_subscriber::fmt::layer())
+        .init();
+
+    // 加载配置
+    let config = Config::from_env()?;
+
+    // 连接数据库
+    tracing::info!("Connecting to database...");
+    let pool = PgPoolOptions::new()
+        .max_connections(5)
+        .connect(&config.database_url)
+        .await?;
+
+    // 运行数据库迁移
+    tracing::info!("Running migrations...");
+    sqlx::migrate!("./migrations").run(&pool).await?;
+
+    let state = AppState { pool, config };
+
+    // 配置 CORS
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods(Any)
+        .allow_headers(Any);
+
+    // 构建路由
+    let app = Router::new()
+        .route("/api/health", get(health_check))
+        // 公开端点
+        .route("/api/photos", get(handlers::list_photos))
+        .route("/api/photos/:id", get(handlers::get_photo))
+        .route("/api/tags", get(handlers::list_tags))
+        .route("/api/categories", get(handlers::list_categories))
+        .route("/api/settings", get(handlers::get_public_settings))
+        .route("/api/images/*key", get(handlers::proxy_image))
+        // 管理端点
+        .route("/api/admin/login", post(handlers::login))
+        .route(
+            "/api/admin/settings",
+            get(handlers::get_admin_settings)
+                .put(handlers::update_admin_settings)
+                .route_layer(axum_middleware::from_fn_with_state(
+                    state.clone(),
+                    middleware::auth_middleware,
+                )),
+        )
+        .route(
+            "/api/admin/settings/test-image-api",
+            post(handlers::test_image_api_settings).route_layer(
+                axum_middleware::from_fn_with_state(
+                    state.clone(),
+                    middleware::auth_middleware,
+                ),
+            ),
+        )
+        // 需要认证的端点
+        .route(
+            "/api/photos",
+            post(handlers::upload_photo)
+                .layer(DefaultBodyLimit::max(20 * 1024 * 1024))
+                .route_layer(axum_middleware::from_fn_with_state(
+                    state.clone(),
+                    middleware::auth_middleware,
+                )),
+        )
+        .route(
+            "/api/photos/:id",
+            put(handlers::update_photo)
+                .delete(handlers::delete_photo)
+                .route_layer(axum_middleware::from_fn_with_state(
+                    state.clone(),
+                    middleware::auth_middleware,
+                )),
+        )
+        .layer(cors)
+        .with_state(state);
+
+    // 启动服务器
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
+    tracing::info!("Server listening on {}", listener.local_addr()?);
+
+    axum::serve(listener, app).await?;
+
+    Ok(())
+}
