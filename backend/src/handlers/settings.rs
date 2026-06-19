@@ -16,7 +16,7 @@ pub async fn get_public_settings(
     let settings = sqlx::query_as::<_, PublicSiteSettings>(
         r#"
         SELECT
-            site_title, site_subtitle, site_intro, header_icon, footer_icp, footer_police_record,
+            site_title, site_subtitle, site_intro, header_icon, site_favicon_url, footer_icp, footer_police_record,
             footer_links, s3_public_base_url, updated_at
         FROM site_settings
         WHERE id = TRUE
@@ -47,18 +47,19 @@ pub async fn update_admin_settings(
             site_subtitle = $2,
             site_intro = $3,
             header_icon = $4,
-            footer_icp = $5,
-            footer_police_record = $6,
-            footer_links = $7,
-            s3_endpoint = $8,
-            s3_region = $9,
-            s3_bucket = $10,
-            s3_access_key_id = $11,
-            s3_secret_access_key = $12,
-            s3_public_base_url = $13
+            site_favicon_url = $5,
+            footer_icp = $6,
+            footer_police_record = $7,
+            footer_links = $8,
+            s3_endpoint = $9,
+            s3_region = $10,
+            s3_bucket = $11,
+            s3_access_key_id = $12,
+            s3_secret_access_key = $13,
+            s3_public_base_url = $14
         WHERE id = TRUE
         RETURNING
-            site_title, site_subtitle, site_intro, header_icon, footer_icp, footer_police_record,
+            site_title, site_subtitle, site_intro, header_icon, site_favicon_url, footer_icp, footer_police_record,
             footer_links, s3_endpoint, s3_region, s3_bucket, s3_access_key_id,
             s3_secret_access_key, s3_public_base_url, updated_at
         "#,
@@ -67,6 +68,7 @@ pub async fn update_admin_settings(
     .bind(req.site_subtitle.trim())
     .bind(req.site_intro.trim())
     .bind(req.header_icon.trim())
+    .bind(req.site_favicon_url.trim())
     .bind(trim_optional(req.footer_icp))
     .bind(trim_optional(req.footer_police_record))
     .bind(footer_links)
@@ -131,7 +133,7 @@ pub async fn fetch_site_settings(pool: &sqlx::PgPool) -> Result<SiteSettings> {
     sqlx::query_as::<_, SiteSettings>(
         r#"
         SELECT
-            site_title, site_subtitle, site_intro, header_icon, footer_icp, footer_police_record,
+            site_title, site_subtitle, site_intro, header_icon, site_favicon_url, footer_icp, footer_police_record,
             footer_links, s3_endpoint, s3_region, s3_bucket, s3_access_key_id,
             s3_secret_access_key, s3_public_base_url, updated_at
         FROM site_settings

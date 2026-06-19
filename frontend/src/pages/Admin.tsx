@@ -9,13 +9,18 @@ import { getImageUrl } from '../utils/cloudflare';
 import type { Photo, UpdatePhotoRequest } from '../types/photo';
 import type { FooterLinkGroup, SiteSettings } from '../types/settings';
 import {
+  Antenna,
+  Camera,
   Edit,
   Globe2,
   Image as ImageIcon,
+  Images,
   Link as LinkIcon,
   LogOut,
   Plus,
+  Radio,
   Save,
+  SatelliteDish,
   Settings,
   Trash2,
   X,
@@ -26,6 +31,7 @@ const defaultSettings: SiteSettings = {
   site_subtitle: '展示业余无线电爱好者的精彩瞬间',
   site_intro: '',
   header_icon: 'radio',
+  site_favicon_url: '',
   footer_icp: '',
   footer_police_record: '',
   footer_links: [
@@ -47,6 +53,14 @@ const tabs = [
   { id: 'site', label: '网站信息', icon: Globe2 },
   { id: 'footer', label: '页眉页脚', icon: LinkIcon },
   { id: 'storage', label: 'S3 API', icon: Settings },
+] as const;
+
+const headerIconOptions = [
+  { value: 'radio', label: '无线电', icon: Radio },
+  { value: 'antenna', label: '天线', icon: Antenna },
+  { value: 'camera', label: '相机', icon: Camera },
+  { value: 'images', label: '图库', icon: Images },
+  { value: 'satellite', label: '卫星', icon: SatelliteDish },
 ] as const;
 
 type AdminTab = (typeof tabs)[number]['id'];
@@ -272,7 +286,7 @@ export default function Admin() {
         {activeTab === 'site' && (
           <SettingsShell
             title="网站信息"
-            description="控制前台标题、副标题和页眉图标。"
+            description="控制前台标题、副标题、页眉图标和浏览器标签图标。"
             isLoading={isSettingsLoading}
             isSaving={updateSettings.isPending}
             onSave={saveSettings}
@@ -283,18 +297,28 @@ export default function Admin() {
                 value={settingsForm.site_title}
                 onChange={(value) => updateField('site_title', value)}
               />
-              <SelectField
-                label="页眉图标"
+              <HeaderIconField
                 value={settingsForm.header_icon}
-                options={[
-                  ['radio', '无线电'],
-                  ['antenna', '天线'],
-                  ['camera', '相机'],
-                  ['images', '图库'],
-                  ['satellite', '卫星'],
-                ]}
                 onChange={(value) => updateField('header_icon', value)}
               />
+              <div className="md:col-span-2">
+                <TextField
+                  label="网站图标 URL"
+                  value={settingsForm.site_favicon_url}
+                  placeholder="/favicon.ico 或 https://example.com/favicon.png"
+                  onChange={(value) => updateField('site_favicon_url', value)}
+                />
+                {settingsForm.site_favicon_url.trim() && (
+                  <div className="mt-3 flex items-center gap-3 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-300">
+                    <img
+                      src={settingsForm.site_favicon_url}
+                      alt=""
+                      className="h-6 w-6 rounded-sm object-contain"
+                    />
+                    <span className="truncate">{settingsForm.site_favicon_url}</span>
+                  </div>
+                )}
+              </div>
               <div className="md:col-span-2">
                 <TextField
                   label="网站副标题"
@@ -921,6 +945,42 @@ function SelectField({
         ))}
       </select>
     </label>
+  );
+}
+
+function HeaderIconField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const selected = headerIconOptions.find((option) => option.value === value) ?? headerIconOptions[0];
+  const SelectedIcon = selected.icon;
+
+  return (
+    <div>
+      <label htmlFor="header-icon" className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+        页眉图标
+      </label>
+      <div className="grid grid-cols-[auto_1fr] gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 bg-gray-50 text-blue-600 dark:border-gray-800 dark:bg-gray-950">
+          <SelectedIcon size={22} />
+        </div>
+        <select
+          id="header-icon"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 dark:focus:ring-blue-950"
+        >
+          {headerIconOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
   );
 }
 

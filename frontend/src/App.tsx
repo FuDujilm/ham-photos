@@ -7,6 +7,7 @@ import PhotoDetail from './pages/PhotoDetail';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
 import Init from './pages/Init';
+import { useSiteFavicon } from './hooks/useSiteFavicon';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -24,6 +25,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
+  useSiteFavicon();
+
   return (
     <BrowserRouter>
       <Routes>

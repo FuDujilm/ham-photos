@@ -13,6 +13,7 @@ export interface PublicSiteSettings {
   site_subtitle: string;
   site_intro: string;
   header_icon: string;
+  site_favicon_url: string;
   footer_icp?: string | null;
   footer_police_record?: string | null;
   footer_links: FooterLinkGroup[];
