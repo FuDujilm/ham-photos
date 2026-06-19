@@ -10,13 +10,7 @@ pub async fn proxy_image(
     State(state): State<AppState>,
     Path(key): Path<String>,
 ) -> Result<Response<Body>> {
-    let image_api_settings = crate::handlers::fetch_image_api_settings(
-        &state.pool,
-        &state.config.cloudflare_account_id,
-        &state.config.cloudflare_api_token,
-        &state.config.cloudflare_account_hash,
-    )
-    .await?;
+    let image_api_settings = crate::handlers::fetch_image_api_settings(&state.pool).await?;
 
     let bytes = crate::services::get_image(
         &key,
@@ -31,10 +25,9 @@ pub async fn proxy_image(
 
     let mut response = Response::new(Body::from(bytes));
     *response.status_mut() = StatusCode::OK;
-    response.headers_mut().insert(
-        header::CONTENT_TYPE,
-        HeaderValue::from_static("image/webp"),
-    );
+    response
+        .headers_mut()
+        .insert(header::CONTENT_TYPE, HeaderValue::from_static("image/webp"));
     response.headers_mut().insert(
         header::CACHE_CONTROL,
         HeaderValue::from_static("public, max-age=31536000, immutable"),

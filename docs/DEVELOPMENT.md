@@ -5,7 +5,7 @@
 ### 后端开发
 
 #### 前置要求
-- Rust 1.78+
+- Rust 1.88+
 - PostgreSQL 16
 - SQLx CLI
 

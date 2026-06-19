@@ -26,12 +26,6 @@ services:
     container_name: ham-photos-backend
     environment:
       DATABASE_URL: postgresql://ham_user:${DB_PASSWORD}@postgres:5432/ham_photos
-      CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID}
-      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN}
-      CLOUDFLARE_ACCOUNT_HASH: ${CLOUDFLARE_ACCOUNT_HASH}
-      JWT_SECRET: ${JWT_SECRET}
-      ADMIN_USERNAME: ${ADMIN_USERNAME}
-      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH}
       RUST_LOG: ${RUST_LOG:-info}
     depends_on:
       postgres:
@@ -48,7 +42,6 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_BASE_URL: /api
-        VITE_CF_ACCOUNT_HASH: ${CLOUDFLARE_ACCOUNT_HASH}
     container_name: ham-photos-frontend
     ports:
       - "80:80"

@@ -8,7 +8,7 @@ mod services;
 use axum::{
     extract::DefaultBodyLimit,
     middleware as axum_middleware,
-    routing::{delete, get, post, put},
+    routing::{get, post, put},
     Router,
 };
 use sqlx::postgres::PgPoolOptions;
@@ -16,7 +16,6 @@ use tower_http::cors::{Any, CorsLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use config::Config;
-use error::AppError;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -53,6 +52,10 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("Running migrations...");
     sqlx::migrate!("./migrations").run(&pool).await?;
 
+    handlers::get_or_create_jwt_secret(&pool)
+        .await
+        .map_err(|err| anyhow::anyhow!("failed to initialize JWT secret: {:?}", err))?;
+
     let state = AppState { pool, config };
 
     // 配置 CORS
@@ -71,6 +74,8 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/categories", get(handlers::list_categories))
         .route("/api/settings", get(handlers::get_public_settings))
         .route("/api/images/*key", get(handlers::proxy_image))
+        .route("/api/init/status", get(handlers::get_init_status))
+        .route("/api/init", post(handlers::initialize_admin))
         // 管理端点
         .route("/api/admin/login", post(handlers::login))
         .route(
@@ -85,10 +90,7 @@ async fn main() -> anyhow::Result<()> {
         .route(
             "/api/admin/settings/test-image-api",
             post(handlers::test_image_api_settings).route_layer(
-                axum_middleware::from_fn_with_state(
-                    state.clone(),
-                    middleware::auth_middleware,
-                ),
+                axum_middleware::from_fn_with_state(state.clone(), middleware::auth_middleware),
             ),
         )
         // 需要认证的端点

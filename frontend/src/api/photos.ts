@@ -6,7 +6,7 @@ import type {
   CreatePhotoMetadata,
   UpdatePhotoRequest,
 } from '../types/photo';
-import type { LoginRequest, LoginResponse } from '../types/api';
+import type { InitRequest, InitResponse, InitStatusResponse, LoginRequest, LoginResponse } from '../types/api';
 import type { PublicSiteSettings, SiteSettings, TestImageApiResponse } from '../types/settings';
 
 export const photosApi = {
@@ -64,6 +64,16 @@ export const authApi = {
   // 登录
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
     const response = await apiClient.post<LoginResponse>('/admin/login', credentials);
+    return response.data;
+  },
+
+  getInitStatus: async (): Promise<InitStatusResponse> => {
+    const response = await apiClient.get<InitStatusResponse>('/init/status');
+    return response.data;
+  },
+
+  initialize: async (payload: InitRequest): Promise<InitResponse> => {
+    const response = await apiClient.post<InitResponse>('/init', payload);
     return response.data;
   },
 };

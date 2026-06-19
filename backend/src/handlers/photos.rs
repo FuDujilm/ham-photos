@@ -83,17 +83,12 @@ pub async fn list_photos(
     })))
 }
 
-pub async fn get_photo(
-    State(state): State<AppState>,
-    Path(id): Path<Uuid>,
-) -> Result<Json<Photo>> {
-    let photo = sqlx::query_as::<_, Photo>(
-        "SELECT * FROM photos WHERE id = $1"
-    )
-    .bind(id)
-    .fetch_optional(&state.pool)
-    .await?
-    .ok_or(AppError::NotFound)?;
+pub async fn get_photo(State(state): State<AppState>, Path(id): Path<Uuid>) -> Result<Json<Photo>> {
+    let photo = sqlx::query_as::<_, Photo>("SELECT * FROM photos WHERE id = $1")
+        .bind(id)
+        .fetch_optional(&state.pool)
+        .await?
+        .ok_or(AppError::NotFound)?;
 
     Ok(Json(photo))
 }
@@ -167,13 +162,7 @@ pub async fn delete_photo(
         .await?
         .ok_or(AppError::NotFound)?;
 
-    let image_api_settings = crate::handlers::fetch_image_api_settings(
-        &state.pool,
-        &state.config.cloudflare_account_id,
-        &state.config.cloudflare_api_token,
-        &state.config.cloudflare_account_hash,
-    )
-    .await?;
+    let image_api_settings = crate::handlers::fetch_image_api_settings(&state.pool).await?;
 
     // 从 Cloudflare 删除图片
     if let Err(e) = crate::services::delete_image(
@@ -199,9 +188,7 @@ pub async fn delete_photo(
     Ok(Json(json!({ "message": "Photo deleted successfully" })))
 }
 
-pub async fn list_tags(
-    State(state): State<AppState>,
-) -> Result<Json<serde_json::Value>> {
+pub async fn list_tags(State(state): State<AppState>) -> Result<Json<serde_json::Value>> {
     let tags: Vec<String> = sqlx::query_scalar(
         r#"
         SELECT DISTINCT jsonb_array_elements_text(tags) as tag
@@ -216,11 +203,9 @@ pub async fn list_tags(
     Ok(Json(json!({ "tags": tags })))
 }
 
-pub async fn list_categories(
-    State(state): State<AppState>,
-) -> Result<Json<serde_json::Value>> {
+pub async fn list_categories(State(state): State<AppState>) -> Result<Json<serde_json::Value>> {
     let categories: Vec<String> = sqlx::query_scalar(
-        "SELECT DISTINCT category FROM photos WHERE category IS NOT NULL ORDER BY category"
+        "SELECT DISTINCT category FROM photos WHERE category IS NOT NULL ORDER BY category",
     )
     .fetch_all(&state.pool)
     .await?;

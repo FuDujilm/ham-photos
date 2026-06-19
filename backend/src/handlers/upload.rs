@@ -22,16 +22,12 @@ pub async fn upload_photo(
     let mut metadata: Option<CreatePhotoRequest> = None;
 
     // 解析 multipart 数据
-    while let Some(field) = multipart
-        .next_field()
-        .await
-        .map_err(|e| {
-            AppError::BadRequest(format!(
-                "无法解析上传表单，请确认图片不超过 20MB 且请求格式正确: {}",
-                e
-            ))
-        })?
-    {
+    while let Some(field) = multipart.next_field().await.map_err(|e| {
+        AppError::BadRequest(format!(
+            "无法解析上传表单，请确认图片不超过 20MB 且请求格式正确: {}",
+            e
+        ))
+    })? {
         let field_name = field.name().unwrap_or("").to_string();
 
         match field_name.as_str() {
@@ -55,18 +51,21 @@ pub async fn upload_photo(
                     .text()
                     .await
                     .map_err(|e| AppError::BadRequest(format!("Failed to read metadata: {}", e)))?;
-                metadata = Some(
-                    serde_json::from_str(&data)
-                        .map_err(|e| AppError::BadRequest(format!("Invalid metadata JSON: {}", e)))?,
-                );
+                metadata =
+                    Some(serde_json::from_str(&data).map_err(|e| {
+                        AppError::BadRequest(format!("Invalid metadata JSON: {}", e))
+                    })?);
             }
             _ => {}
         }
     }
 
-    let file_bytes = file_bytes.ok_or_else(|| AppError::BadRequest("No file provided".to_string()))?;
-    let filename = filename.ok_or_else(|| AppError::BadRequest("No filename provided".to_string()))?;
-    let metadata = metadata.ok_or_else(|| AppError::BadRequest("No metadata provided".to_string()))?;
+    let file_bytes =
+        file_bytes.ok_or_else(|| AppError::BadRequest("No file provided".to_string()))?;
+    let filename =
+        filename.ok_or_else(|| AppError::BadRequest("No filename provided".to_string()))?;
+    let metadata =
+        metadata.ok_or_else(|| AppError::BadRequest("No metadata provided".to_string()))?;
 
     // 验证文件大小（20MB）
     if file_bytes.len() > 20 * 1024 * 1024 {
@@ -75,13 +74,7 @@ pub async fn upload_photo(
 
     let (file_bytes, filename) = convert_to_webp(file_bytes, &filename)?;
 
-    let image_api_settings = crate::handlers::fetch_image_api_settings(
-        &state.pool,
-        &state.config.cloudflare_account_id,
-        &state.config.cloudflare_api_token,
-        &state.config.cloudflare_account_hash,
-    )
-    .await?;
+    let image_api_settings = crate::handlers::fetch_image_api_settings(&state.pool).await?;
 
     // 上传到 Cloudflare Images
     let cloudflare_image_id = upload_image(
@@ -136,13 +129,8 @@ pub async fn upload_photo(
         let state_clone = state.clone();
         let image_id_clone = cloudflare_image_id.clone();
         tokio::spawn(async move {
-            let image_api_settings = crate::handlers::fetch_image_api_settings(
-                &state_clone.pool,
-                &state_clone.config.cloudflare_account_id,
-                &state_clone.config.cloudflare_api_token,
-                &state_clone.config.cloudflare_account_hash,
-            )
-            .await;
+            let image_api_settings =
+                crate::handlers::fetch_image_api_settings(&state_clone.pool).await;
 
             let Ok(image_api_settings) = image_api_settings else {
                 return;

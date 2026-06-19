@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { authApi } from '../api/photos';
 import { useAuthStore } from '../stores/authStore';
 import { Radio } from 'lucide-react';
@@ -10,6 +10,19 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
+
+  const statusQuery = useQuery({
+    queryKey: ['init-status'],
+    queryFn: authApi.getInitStatus,
+    retry: 1,
+  });
+
+  useEffect(() => {
+    if (statusQuery.data && !statusQuery.data.initialized) {
+      navigate('/init', { replace: true });
+    }
+  }, [navigate, statusQuery.data]);
+
 
   const loginMutation = useMutation({
     mutationFn: authApi.login,
@@ -72,7 +85,7 @@ export default function Login() {
 
           <button
             type="submit"
-            disabled={loginMutation.isPending}
+            disabled={loginMutation.isPending || statusQuery.isLoading}
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loginMutation.isPending ? '登录中...' : '登录'}

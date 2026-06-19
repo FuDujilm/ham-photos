@@ -23,22 +23,36 @@ pub async fn login(
     State(state): State<AppState>,
     Json(req): Json<LoginRequest>,
 ) -> Result<Json<LoginResponse>> {
-    // 验证用户名
-    if req.username != state.config.admin_username {
-        return Err(AppError::Unauthorized);
-    }
+    let username = req.username.trim();
 
-    // 验证密码
-    let is_valid = verify_password(&req.password, &state.config.admin_password_hash)?;
+    let admin = sqlx::query_as::<_, AdminUserCredentials>(
+        r#"
+        SELECT username, password_hash
+        FROM admin_users
+        WHERE username = $1
+        "#,
+    )
+    .bind(username)
+    .fetch_optional(&state.pool)
+    .await?
+    .ok_or(AppError::Unauthorized)?;
+
+    let is_valid = verify_password(&req.password, &admin.password_hash)?;
     if !is_valid {
         return Err(AppError::Unauthorized);
     }
 
-    // 生成 JWT
-    let token = create_jwt(&req.username, &state.config.jwt_secret)?;
+    let jwt_secret = crate::handlers::get_or_create_jwt_secret(&state.pool).await?;
+    let token = create_jwt(&admin.username, &jwt_secret)?;
 
     Ok(Json(LoginResponse {
         token,
-        username: req.username,
+        username: admin.username,
     }))
+}
+
+#[derive(Debug, sqlx::FromRow)]
+struct AdminUserCredentials {
+    username: String,
+    password_hash: String,
 }

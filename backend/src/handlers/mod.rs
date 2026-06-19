@@ -1,11 +1,13 @@
-pub mod photos;
-pub mod upload;
 pub mod admin;
-pub mod settings;
 pub mod images;
+pub mod init;
+pub mod photos;
+pub mod settings;
+pub mod upload;
 
-pub use photos::*;
-pub use upload::*;
 pub use admin::*;
-pub use settings::*;
 pub use images::*;
+pub use init::*;
+pub use photos::*;
+pub use settings::*;
+pub use upload::*;

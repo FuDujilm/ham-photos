@@ -3,7 +3,7 @@
 ## 前置要求
 
 - Docker 和 Docker Compose
-- Cloudflare Images 账号
+- S3 兼容图片存储（如 Cloudflare R2，可在后台配置）
 - 域名（可选，用于生产环境）
 
 ## 快速部署
@@ -21,51 +21,13 @@ cd ham-photos
 cp .env.example .env
 ```
 
-编辑 `.env` 文件，填入以下信息：
+编辑 `.env` 文件，填入数据库密码：
 
 ```bash
-# 数据库密码
 DB_PASSWORD=your_secure_password
-
-# Cloudflare Images 配置
-CLOUDFLARE_ACCOUNT_ID=your_account_id
-CLOUDFLARE_API_TOKEN=your_api_token
-CLOUDFLARE_ACCOUNT_HASH=your_delivery_hash
-
-# JWT 密钥（至少 32 个字符）
-JWT_SECRET=your_jwt_secret_key_minimum_32_characters
-
-# 管理员账号
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD_HASH=$2b$12$...  # 见下方生成方法
 ```
 
-### 3. 生成管理员密码哈希
-
-使用 bcrypt 在线工具：https://bcrypt-generator.com/ (rounds: 12)
-
-或使用命令行：
-```bash
-docker run --rm -it node:20-alpine sh -c "npm install -g bcrypt-cli && bcrypt-cli <your-password>"
-```
-
-### 4. 获取 Cloudflare Images 配置
-
-1. 登录 Cloudflare Dashboard
-2. 进入 **Images** 页面
-3. 获取以下信息：
-   - **Account ID**: 在 Images 页面右侧
-   - **API Token**: 在 **API Tokens** 创建一个具有 "Cloudflare Images" 权限的 token
-   - **Account Hash**: 在 Images 页面的 "Delivery URL" 中提取
-     - 格式：`https://imagedelivery.net/<YOUR_HASH>/...`
-
-4. 在 Cloudflare Dashboard 配置图片 Variants：
-   - `thumbnail` - 300x300, fit=cover
-   - `medium` - 800x600, fit=scale-down
-   - `large` - 1920x1080, fit=scale-down
-   - `public` - 原图
-
-### 5. 启动服务
+### 3. 启动服务
 
 ```bash
 docker-compose up -d
@@ -76,7 +38,15 @@ docker-compose up -d
 docker-compose logs -f
 ```
 
-### 6. 访问应用
+### 4. 初始化管理员与图片存储
+
+首次部署后访问初始化页面创建管理员账户：
+
+- 初始化页面：http://localhost/init
+
+登录后台后，在站点设置里配置图片存储的 S3/R2 API 信息。管理员账户和 JWT 密钥会保存在数据库中，不需要通过环境变量预置。
+
+### 5. 访问应用
 
 - 前端：http://localhost
 - 后端 API：http://localhost:3000
@@ -141,7 +111,7 @@ docker-compose ps postgres
 docker-compose logs postgres
 ```
 
-### Cloudflare 上传失败
+### 图片上传失败
 
 1. 检查 API Token 权限
 2. 验证 Account ID 是否正确
@@ -170,7 +140,7 @@ backend:
 
 ### 2. 配置 CDN
 
-Cloudflare Images 已自带 CDN，无需额外配置。
+如果使用 Cloudflare R2 或其他 S3 兼容存储，可通过公开桶、自定义域名或 CDN 提供图片访问地址。
 
 ### 3. 启用浏览器缓存
 

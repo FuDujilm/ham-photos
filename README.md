@@ -8,14 +8,14 @@
 - 🏷️ **分类和标签**：按设备类型、频段、活动等分类
 - 🔍 **强大的搜索**：支持呼号、频段、全文搜索
 - 📡 **业余无线电元数据**：呼号、频段、设备、天线、QTH 等
-- ☁️ **Cloudflare CDN**：全球加速，自动图片优化
+- ☁️ **S3/R2 图片存储**：在后台配置对象存储与公开访问地址
 - 🔐 **管理后台**：便捷的照片上传和编辑界面
 - 🐳 **Docker 部署**：一键启动，易于维护
 
 ## 技术栈
 
 ### 后端
-- Rust 1.78+
+- Rust 1.88+
 - Axum 0.7（Web 框架）
 - SQLx 0.7（数据库）
 - PostgreSQL 16
@@ -27,14 +27,14 @@
 - React Masonry CSS（瀑布流）
 
 ### 存储
-- Cloudflare Images（图片存储 + CDN）
+- S3 兼容对象存储（图片存储）
 - PostgreSQL（元数据）
 
 ## 快速开始
 
 ### 环境要求
 - Docker 和 Docker Compose
-- Cloudflare Images 账号
+- S3 兼容对象存储账号（可在初始化后配置）
 
 ### 部署步骤
 
@@ -50,16 +50,13 @@ cp .env.example .env
 # 编辑 .env 文件，填入你的配置
 ```
 
-3. **生成管理员密码哈希**
-```bash
-# 使用在线工具或运行：
-docker run --rm -it node:20-alpine sh -c "npm install -g bcrypt-cli && bcrypt-cli <your-password>"
-```
-
-4. **启动服务**
+3. **启动服务**
 ```bash
 docker-compose up -d
 ```
+
+4. **初始化管理员**
+- 初始化页面：http://localhost/init
 
 5. **访问应用**
 - 前端：http://localhost

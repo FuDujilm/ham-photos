@@ -260,7 +260,10 @@ fn object_key(_filename: &str) -> String {
 }
 
 fn encode_key(key: &str) -> String {
-    key.split('/').map(encode_path_segment).collect::<Vec<_>>().join("/")
+    key.split('/')
+        .map(encode_path_segment)
+        .collect::<Vec<_>>()
+        .join("/")
 }
 
 fn encode_path_segment(segment: &str) -> String {

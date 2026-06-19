@@ -4,7 +4,7 @@ FROM node:20-alpine as builder
 WORKDIR /app
 
 # 安装 pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9 --activate
 
 # 复制依赖文件
 COPY package.json pnpm-lock.yaml* ./
@@ -17,13 +17,10 @@ COPY . .
 
 # 构建参数
 ARG VITE_API_BASE_URL=/api
-ARG VITE_CF_ACCOUNT_HASH
-
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
-ENV VITE_CF_ACCOUNT_HASH=$VITE_CF_ACCOUNT_HASH
 
 # 构建应用
-RUN pnpm build
+RUN pnpm run build
 
 # 生产阶段
 FROM nginx:alpine

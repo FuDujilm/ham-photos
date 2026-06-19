@@ -10,7 +10,9 @@ use crate::{
     AppState,
 };
 
-pub async fn get_public_settings(State(state): State<AppState>) -> Result<Json<PublicSiteSettings>> {
+pub async fn get_public_settings(
+    State(state): State<AppState>,
+) -> Result<Json<PublicSiteSettings>> {
     let settings = sqlx::query_as::<_, PublicSiteSettings>(
         r#"
         SELECT
@@ -92,13 +94,13 @@ pub async fn test_image_api_settings(
             .unwrap_or_else(|| "https://api.cloudflare.com/client/v4".to_string()),
         bucket: trim_optional(req.s3_bucket)
             .or(saved.s3_bucket)
-            .unwrap_or_else(|| state.config.cloudflare_account_hash.clone()),
+            .unwrap_or_default(),
         access_key_id: trim_optional(req.s3_access_key_id)
-        .or(saved.s3_access_key_id)
-            .unwrap_or_else(|| state.config.cloudflare_account_id.clone()),
+            .or(saved.s3_access_key_id)
+            .unwrap_or_default(),
         secret_access_key: trim_optional(req.s3_secret_access_key)
             .or(saved.s3_secret_access_key)
-            .unwrap_or_else(|| state.config.cloudflare_api_token.clone()),
+            .unwrap_or_default(),
         region: saved.s3_region.unwrap_or_else(|| "auto".to_string()),
     };
 
@@ -141,15 +143,10 @@ pub async fn fetch_site_settings(pool: &sqlx::PgPool) -> Result<SiteSettings> {
     .map_err(AppError::from)
 }
 
-pub async fn fetch_image_api_settings(
-    pool: &sqlx::PgPool,
-    fallback_account_id: &str,
-    fallback_api_token: &str,
-    fallback_account_hash: &str,
-) -> Result<ImageApiSettings> {
+pub async fn fetch_image_api_settings(pool: &sqlx::PgPool) -> Result<ImageApiSettings> {
     let settings = fetch_site_settings(pool).await?;
 
-    Ok(ImageApiSettings {
+    let image_api_settings = ImageApiSettings {
         endpoint: settings
             .s3_endpoint
             .filter(|value| !value.trim().is_empty())
@@ -157,20 +154,31 @@ pub async fn fetch_image_api_settings(
         bucket: settings
             .s3_bucket
             .filter(|value| !value.trim().is_empty())
-            .unwrap_or_else(|| fallback_account_hash.to_string()),
+            .unwrap_or_default(),
         access_key_id: settings
             .s3_access_key_id
             .filter(|value| !value.trim().is_empty())
-            .unwrap_or_else(|| fallback_account_id.to_string()),
+            .unwrap_or_default(),
         secret_access_key: settings
             .s3_secret_access_key
             .filter(|value| !value.trim().is_empty())
-            .unwrap_or_else(|| fallback_api_token.to_string()),
+            .unwrap_or_default(),
         region: settings
             .s3_region
             .filter(|value| !value.trim().is_empty())
             .unwrap_or_else(|| "auto".to_string()),
-    })
+    };
+
+    if image_api_settings.bucket.trim().is_empty()
+        || image_api_settings.access_key_id.trim().is_empty()
+        || image_api_settings.secret_access_key.trim().is_empty()
+    {
+        return Err(AppError::BadRequest(
+            "请先在管理后台配置图片存储的 Bucket、Access Key 和 Secret Key".to_string(),
+        ));
+    }
+
+    Ok(image_api_settings)
 }
 
 fn validate_settings(req: &UpdateSiteSettingsRequest) -> Result<()> {
@@ -199,12 +207,16 @@ fn validate_footer_group(group: &FooterLinkGroup) -> Result<()> {
     }
 
     if group.links.len() > 8 {
-        return Err(AppError::BadRequest("每个页脚分组最多配置 8 个链接".to_string()));
+        return Err(AppError::BadRequest(
+            "每个页脚分组最多配置 8 个链接".to_string(),
+        ));
     }
 
     for link in &group.links {
         if link.label.trim().is_empty() || link.url.trim().is_empty() {
-            return Err(AppError::BadRequest("页脚链接名称和地址不能为空".to_string()));
+            return Err(AppError::BadRequest(
+                "页脚链接名称和地址不能为空".to_string(),
+            ));
         }
     }
 

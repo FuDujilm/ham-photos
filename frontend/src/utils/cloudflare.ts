@@ -1,11 +1,8 @@
-const CF_DELIVERY_URL = 'https://imagedelivery.net';
-const CF_ACCOUNT_HASH = import.meta.env.VITE_CF_ACCOUNT_HASH;
-
 export type ImageVariant = 'thumbnail' | 'medium' | 'large' | 'public';
 
 export function getImageUrl(
   imageId: string,
-  variant: ImageVariant = 'medium',
+  _variant: ImageVariant = 'medium',
   publicBaseUrl?: string | null
 ): string {
   const configuredBaseUrl = publicBaseUrl?.trim().replace(/\/$/, '');
@@ -18,11 +15,7 @@ export function getImageUrl(
     return `/api/images/${imageId}`;
   }
 
-  if (!CF_ACCOUNT_HASH) {
-    console.error('VITE_CF_ACCOUNT_HASH is not configured');
-    return '';
-  }
-  return `${CF_DELIVERY_URL}/${CF_ACCOUNT_HASH}/${imageId}/${variant}`;
+  return `/api/images/${imageId}`;
 }
 
 export function getResponsiveImageUrls(imageId: string) {

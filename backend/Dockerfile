@@ -1,5 +1,5 @@
 # 构建阶段
-FROM rust:1.78-slim as builder
+FROM rust:1.88-slim as builder
 
 WORKDIR /app
 
