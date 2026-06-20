@@ -7,13 +7,14 @@ WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@9 --activate
 
 # 复制依赖文件
-COPY package.json pnpm-lock.yaml* ./
+COPY frontend/package.json frontend/pnpm-lock.yaml* ./
 
 # 安装依赖
 RUN pnpm install --frozen-lockfile || pnpm install
 
 # 复制源代码
-COPY . .
+COPY frontend .
+COPY config ../config
 
 # 构建参数
 ARG VITE_API_BASE_URL=/api

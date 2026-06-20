@@ -1,0 +1,14 @@
+{
+  "siteTitle": "火腿次元",
+  "siteSubtitle": "记录业余无线电爱好者的精彩瞬间",
+  "siteDescription": "火腿次元是面向业余无线电爱好者的照片墙，记录电台、通联、活动与器材瞬间。",
+  "siteIntro": "",
+  "headerIcon": "radio",
+  "faviconUrl": "/favicon.svg",
+  "icpRecord": "",
+  "icpBeianUrl": "https://beian.miit.gov.cn/",
+  "policeRecord": "",
+  "policeBeianBaseUrl": "https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=",
+  "policeBeianHomeUrl": "https://www.beian.gov.cn/",
+  "policeBeianIconUrl": "https://www.beian.gov.cn/img/new/gongan.png"
+}

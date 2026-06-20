@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { Antenna, Camera, Images, Radio, SatelliteDish, User } from 'lucide-react';
 import { usePublicSettings } from '../../hooks/useSettings';
+import { siteConfig } from '../../config/site';
 
 const iconMap = {
   radio: Radio,
@@ -22,7 +23,7 @@ export default function Header() {
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 text-xl font-bold text-gray-900 dark:text-gray-100">
             <Icon className="text-blue-600" size={28} />
-            <span>{settings?.site_title ?? 'HAM Radio Gallery'}</span>
+            <span>{settings?.site_title ?? siteConfig.siteTitle}</span>
           </Link>
 
           <div className="flex items-center gap-4">

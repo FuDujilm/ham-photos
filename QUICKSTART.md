@@ -31,6 +31,15 @@ docker-compose up -d
 
 首次访问 `http://localhost/init` 创建管理员账户。初始化完成后会自动进入后台。
 
+如需忘记密码后重新初始化管理员：
+
+```bash
+docker compose run --rm backend reset-init
+docker compose restart backend
+```
+
+执行后重新访问 `http://localhost/init` 创建管理员账户。
+
 ### 4. 配置图片存储
 
 进入管理后台的站点设置，填写图片存储的 S3/R2 API 配置：

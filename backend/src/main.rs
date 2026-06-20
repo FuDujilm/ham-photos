@@ -52,6 +52,22 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("Running migrations...");
     sqlx::migrate!("./migrations").run(&pool).await?;
 
+    if matches!(std::env::args().nth(1).as_deref(), Some("reset-init")) {
+        let deleted = handlers::reset_initialization(&pool)
+            .await
+            .map_err(|err| anyhow::anyhow!("failed to reset initialization: {:?}", err))?;
+
+        tracing::info!(
+            "Initialization reset complete. Deleted {} admin account(s). Visit /init to create a new administrator.",
+            deleted
+        );
+        return Ok(());
+    }
+
+    services::sync_site_config(&pool, &config.site_config_path)
+        .await
+        .map_err(|err| anyhow::anyhow!("failed to sync site config: {:?}", err))?;
+
     handlers::get_or_create_jwt_secret(&pool)
         .await
         .map_err(|err| anyhow::anyhow!("failed to initialize JWT secret: {:?}", err))?;

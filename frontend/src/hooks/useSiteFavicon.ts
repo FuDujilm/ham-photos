@@ -1,13 +1,12 @@
 import { useEffect } from 'react';
+import { siteConfig } from '../config/site';
 import { usePublicSettings } from './useSettings';
-
-const DEFAULT_FAVICON_URL = '/vite.svg';
 
 export function useSiteFavicon() {
   const { data: settings } = usePublicSettings();
 
   useEffect(() => {
-    const href = settings?.site_favicon_url?.trim() || DEFAULT_FAVICON_URL;
+    const href = settings?.site_favicon_url?.trim() || siteConfig.faviconUrl;
     let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
 
     if (!link) {

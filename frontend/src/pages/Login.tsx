@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { authApi } from '../api/photos';
+import { siteConfig } from '../config/site';
 import { useAuthStore } from '../stores/authStore';
 import { Radio } from 'lucide-react';
 
@@ -45,7 +46,7 @@ export default function Login() {
             <Radio className="text-white" size={32} />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">管理员登录</h1>
-          <p className="text-gray-600 mt-2 dark:text-gray-400">业余无线电风采展示系统</p>
+          <p className="text-gray-600 mt-2 dark:text-gray-400">{siteConfig.siteTitle} 管理系统</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">

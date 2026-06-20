@@ -58,6 +58,12 @@ docker-compose up -d
 4. **初始化管理员**
 - 初始化页面：http://localhost/init
 
+如需重置管理员账户并重新进入初始化流程：
+```bash
+docker compose run --rm backend reset-init
+docker compose restart backend
+```
+
 5. **访问应用**
 - 前端：http://localhost
 - 后端 API：http://localhost:3000

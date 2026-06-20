@@ -20,9 +20,10 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@site-config": ["../config/site.json"]
     }
   },
-  "include": ["src"],
+  "include": ["src", "../config/site.json"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

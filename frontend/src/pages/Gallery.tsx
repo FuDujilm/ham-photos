@@ -5,6 +5,7 @@ import FilterBar from '../components/Gallery/FilterBar';
 import Header from '../components/shared/Header';
 import Footer from '../components/shared/Footer';
 import { usePublicSettings } from '../hooks/useSettings';
+import { siteConfig } from '../config/site';
 import type { PhotoQuery } from '../types/photo';
 
 export default function Gallery() {
@@ -31,10 +32,10 @@ export default function Gallery() {
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-            {settings?.site_title ?? '业余无线电风采'}
+            {settings?.site_title ?? siteConfig.siteTitle}
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            {settings?.site_subtitle ?? '展示业余无线电爱好者的精彩瞬间'}
+            {settings?.site_subtitle ?? siteConfig.siteSubtitle}
           </p>
           {settings?.site_intro && (
             <p className="mt-4 max-w-3xl whitespace-pre-line text-sm leading-7 text-gray-700 dark:text-gray-300">

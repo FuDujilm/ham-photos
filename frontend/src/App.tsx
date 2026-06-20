@@ -8,6 +8,7 @@ import Admin from './pages/Admin';
 import Login from './pages/Login';
 import Init from './pages/Init';
 import { useSiteFavicon } from './hooks/useSiteFavicon';
+import { useSiteMetadata } from './hooks/useSiteMetadata';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -26,6 +27,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   useSiteFavicon();
+  useSiteMetadata();
 
   return (
     <BrowserRouter>

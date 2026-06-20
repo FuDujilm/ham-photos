@@ -25,6 +25,9 @@ services:
     environment:
       DATABASE_URL: postgresql://ham_user:${DB_PASSWORD}@postgres:5432/ham_photos
       RUST_LOG: ${RUST_LOG:-info}
+      SITE_CONFIG_PATH: /app/config/site.json
+    volumes:
+      - ./config:/app/config:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -36,8 +39,8 @@ services:
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: frontend/Dockerfile
       args:
         VITE_API_BASE_URL: /api
     container_name: ham-photos-frontend

@@ -5,6 +5,7 @@ import { useAdminSettings, useTestImageApi, useUpdateSettings } from '../hooks/u
 import { useAuthStore } from '../stores/authStore';
 import UploadForm from '../components/Admin/UploadForm';
 import Header from '../components/shared/Header';
+import { siteConfig } from '../config/site';
 import { getImageUrl } from '../utils/cloudflare';
 import type { Photo, UpdatePhotoRequest } from '../types/photo';
 import type { FooterLinkGroup, SiteSettings } from '../types/settings';
@@ -27,13 +28,13 @@ import {
 } from 'lucide-react';
 
 const defaultSettings: SiteSettings = {
-  site_title: 'HAM Radio Gallery',
-  site_subtitle: '展示业余无线电爱好者的精彩瞬间',
-  site_intro: '',
-  header_icon: 'radio',
-  site_favicon_url: '',
-  footer_icp: '',
-  footer_police_record: '',
+  site_title: siteConfig.siteTitle,
+  site_subtitle: siteConfig.siteSubtitle,
+  site_intro: siteConfig.siteIntro,
+  header_icon: siteConfig.headerIcon,
+  site_favicon_url: siteConfig.faviconUrl,
+  footer_icp: siteConfig.icpRecord,
+  footer_police_record: siteConfig.policeRecord,
   footer_links: [
     { title: '业余无线电', links: [{ label: '中国无线电协会', url: 'https://www.crac.org.cn' }] },
     { title: '工具资源', links: [{ label: 'QRZ', url: 'https://www.qrz.com' }] },

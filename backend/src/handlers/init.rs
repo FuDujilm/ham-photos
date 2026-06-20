@@ -90,6 +90,28 @@ pub async fn get_or_create_jwt_secret(pool: &sqlx::PgPool) -> Result<String> {
     Ok(secret)
 }
 
+pub async fn reset_initialization(pool: &sqlx::PgPool) -> Result<u64> {
+    let mut tx = pool.begin().await?;
+
+    sqlx::query("SELECT pg_advisory_xact_lock(41001)")
+        .execute(&mut *tx)
+        .await?;
+
+    let deleted = sqlx::query("DELETE FROM admin_users")
+        .execute(&mut *tx)
+        .await?
+        .rows_affected();
+
+    sqlx::query("DELETE FROM app_config WHERE key = $1")
+        .bind(JWT_SECRET_KEY)
+        .execute(&mut *tx)
+        .await?;
+
+    tx.commit().await?;
+
+    Ok(deleted)
+}
+
 async fn get_or_create_jwt_secret_in_tx(
     tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
 ) -> Result<String> {
