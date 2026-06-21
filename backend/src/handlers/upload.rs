@@ -24,8 +24,8 @@ pub async fn upload_photo(
     // 解析 multipart 数据
     while let Some(field) = multipart.next_field().await.map_err(|e| {
         AppError::BadRequest(format!(
-            "无法解析上传表单，请确认图片不超过 20MB 且请求格式正确: {}",
-            e
+            "无法解析上传表单，请确认图片不超过 {}MB 且请求格式正确: {}",
+            state.config.upload_max_mb, e
         ))
     })? {
         let field_name = field.name().unwrap_or("").to_string();
@@ -39,8 +39,8 @@ pub async fn upload_photo(
                         .await
                         .map_err(|e| {
                             AppError::BadRequest(format!(
-                                "读取图片失败，请确认图片不超过 20MB 且文件未损坏: {}",
-                                e
+                                "读取图片失败，请确认图片不超过 {}MB 且文件未损坏: {}",
+                                state.config.upload_max_mb, e
                             ))
                         })?
                         .to_vec(),
@@ -67,9 +67,12 @@ pub async fn upload_photo(
     let metadata =
         metadata.ok_or_else(|| AppError::BadRequest("No metadata provided".to_string()))?;
 
-    // 验证文件大小（20MB）
-    if file_bytes.len() > 20 * 1024 * 1024 {
-        return Err(AppError::BadRequest("File size exceeds 20MB".to_string()));
+    // 验证文件大小
+    if file_bytes.len() > state.config.upload_max_bytes {
+        return Err(AppError::BadRequest(format!(
+            "File size exceeds {}MB",
+            state.config.upload_max_mb
+        )));
     }
 
     let (file_bytes, filename) = convert_to_webp(file_bytes, &filename)?;

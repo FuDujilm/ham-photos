@@ -26,6 +26,7 @@ services:
       DATABASE_URL: postgresql://ham_user:${DB_PASSWORD}@postgres:5432/ham_photos
       RUST_LOG: ${RUST_LOG:-info}
       SITE_CONFIG_PATH: /app/config/site.json
+      UPLOAD_MAX_MB: ${UPLOAD_MAX_MB:-50}
     volumes:
       - ./config:/app/config:ro
     depends_on:

@@ -113,7 +113,7 @@ async fn main() -> anyhow::Result<()> {
         .route(
             "/api/photos",
             post(handlers::upload_photo)
-                .layer(DefaultBodyLimit::max(20 * 1024 * 1024))
+                .layer(DefaultBodyLimit::max(state.config.upload_max_bytes))
                 .route_layer(axum_middleware::from_fn_with_state(
                     state.clone(),
                     middleware::auth_middleware,
